@@ -1,0 +1,3 @@
+#Prompt Token Estimation
+#This script extracts text from a PDF file and calculates its token count using OpenAI’s official tokenizer (tiktoken) for GPT-3.5-turbo. 
+#It's particularly useful for estimating API costs, managing context size, and preparing documents for AI workflows with LangChain.
