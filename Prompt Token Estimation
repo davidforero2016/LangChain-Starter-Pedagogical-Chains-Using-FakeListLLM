@@ -1,3 +1,21 @@
 #Prompt Token Estimation
 #This script extracts text from a PDF file and calculates its token count using OpenAI’s official tokenizer (tiktoken) for GPT-3.5-turbo. 
 #It's particularly useful for estimating API costs, managing context size, and preparing documents for AI workflows with LangChain.
+
+# Install libraries
+!pip install pymupdf tiktoken
+
+# Load and read the PDF
+pdf_path = "your_file.pdf"  # Replace with your PDF file path
+doc = fitz.open("pdf_path")
+text = ""
+for page in doc:
+    text += page.get_text()
+doc.close()
+
+# Tokenizer for GPT-3.5-turbo
+tokenizer = tiktoken.encoding_for_model("gpt-3.5-turbo")
+tokens = tokenizer.encode(text)
+
+# Output the total number of tokens
+print(f"Total number of tokens: {len(tokens)}")
