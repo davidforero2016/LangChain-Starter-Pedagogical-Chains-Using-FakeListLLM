@@ -1,0 +1,55 @@
+#LangChain recently updated its structure, organizing its components into clearer packages like langchain_core and langchain_community, and embracing a modern syntax based on Runnable objects (| operator). 
+#This makes pipelines more readable, modular, and explicit.
+#In this example, I combined:
+#A prompt with a variable input (city)
+#A fake LLM (for local testing without API keys)
+#A custom Python function embedded using RunnableLambda
+#This last feature allows us to inject our own logic directly into the chain — opening the door to flexible, real-world applications that go beyond static LLM outputs.
+#From prompt → model → function → final result. All in a clean, testable pipeline.
+
+#Import components from LangChain
+from langchain_core.prompts import PromptTemplate  # For creating structured prompts
+from langchain_core.runnables import RunnableLambda, RunnableSequence  # For chaining logic
+from langchain_community.llms.fake import FakeListLLM  # Simulated fake LLM for testing
+
+#Create a prompt template with a variable for the city
+weather_prompt = PromptTemplate.from_template("What is the weather like today in {city}?")
+
+#Define a fake LLM with three possible responses to simulate variation. This class fakes LLM outputs in a list, rotating through them in order.
+fake_weather_model = FakeListLLM(responses=[
+    "It's a sunny day with clear skies.",
+    "Looks like it's going to rain all afternoon.",
+    "The sky is overcast, but it might clear up later."
+])
+
+#Create the first step in the chain: prompt + LLM (fake  in this case). This is a RunnableSequence that takes {"city": "..."} and returns a weather description
+weather_chain = weather_prompt | fake_weather_model
+
+#Define a Python function that suggests an activity based on the weather. This is plain Python logic wrapped for LangChain compatibility.
+def suggest_activity(proof_variable: str) -> dict:
+    if "sunny" in proof_variable.lower():
+        activity = "Go for a walk in the park."
+    elif "rain" in proof_variable.lower():
+        activity = "Stay inside and watch a movie."
+    elif "overcast" in proof_variable.lower():
+        activity = "Visit a local museum or café."
+    else:
+        activity = "Check the forecast and plan accordingly."
+    return {
+        "weather": proof_variable,
+        "activity": activity
+    }
+
+#Wrap that logic in a LangChain Runnable. RunnableLambda is a LangChain tool that turns any Python function into a step in a LangChain chain.
+activity_chain = RunnableLambda(suggest_activity)
+
+# Step 7: Combine everything into a full sequential chain
+# This is the complete pipeline: prompt → LLM → Python logic
+full_chain: RunnableSequence = weather_chain | activity_chain
+
+# Step 8: Run the chain with a sample city input
+# This will rotate through the three responses one at a time each time it's called
+result = full_chain.invoke({"city": "New York"})
+
+# Step 9: Output the final result
+print(result)
